@@ -13,7 +13,7 @@ public class Uno{
    
     public static void main(final String[] args){
       
-         Game game;
+        Game game;
         Scanner sc = new Scanner(System.in);
          while(true){
              menu();
