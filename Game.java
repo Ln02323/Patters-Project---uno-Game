@@ -217,73 +217,57 @@ public class Game {
      * cards list
      */
     private void addAllCards() {
-        for (int j = 0; j < 2; j++) {
-            for (int i = 1; i < 10; i++) {
-                cards.add(new Card(i, "red", 0, 0, 0, 0, 0));
-            }
-        }
+        CardBuilder cardBuilder = new CardBuilder();  // Create a CardBuilder object
+        CardBuilderDirector director = new CardBuilderDirector(cardBuilder);  // Create a CardBuilderDirector object
+
+         for (int j = 0; j < 2; j++) {
+             for (int i = 0; i < 4; i++) {
+                 String color;
+                 if (i == 0)
+                     color = "red";
+                 else if (i == 1)
+                     color = "blue";
+                 else if (i == 2)
+                     color = "yellow";
+                 else
+                     color = "green";
+
+                 if (j == 0) {
+                     cards.add(director.constructCard(0, color));  // Add zero card
+                 }
+
+                 for (int num = 1; num < 10; num++) {
+                     cards.add(director.constructCard(num, color));  // Add numbered cards
+                 }
+             }
+         }
 
         for (int j = 0; j < 2; j++) {
-            for (int i = 1; i < 10; i++) {
-                cards.add(new Card(i, "blue", 0, 0, 0, 0, 0));
-            }
-        }
-
-        for (int j = 0; j < 2; j++) {
-            for (int i = 1; i < 10; i++) {
-                cards.add(new Card(i, "yellow", 0, 0, 0, 0, 0));
-            }
-        }
-
-        for (int j = 0; j < 2; j++) {
-            for (int i = 1; i < 10; i++) {
-                cards.add(new Card(i, "green", 0, 0, 0, 0, 0));
-            }
-        }
-
-        String color = null;
-        for (int j = 0; j < 2; j++) {
-            for (int k = 0; k < 4; k++) {
-                if (k == 0)
+            for (int i = 0; i < 4; i++) {
+                String color;
+                if (i == 0)
                     color = "red";
-                else if (k == 1)
+                else if (i == 1)
                     color = "blue";
-                else if (k == 2)
+                else if (i == 2)
                     color = "yellow";
-                else if (k == 3)
+                else
                     color = "green";
-                for (int i = 0; i < 3; i++) {
-                    int n = 0;
-                    int m = 0;
-                    int l = 0;
-                    if (i == 0)
-                        n = 1;
-                    else if (i == 1)
-                        m = 1;
-                    else if (i == 2)
-                        l = 1;
-                    cards.add(new Card(-1, color, n, m, l, 0, 0));
+
+                cards.add(director.constructSpecialCard(0, color, 0, 0, 0));  // Add zero special card
+
+                for (int k = 0; k < 3; k++) {
+                    cards.add(director.constructSpecialCard(-1, color, k == 0 ? 1 : 0, k == 1 ? 1 : 0, k == 2 ? 1 : 0));  // Add other special cards
                 }
             }
         }
 
-        for (int i = 0; i < 4; i++)
-            cards.add(new Card(-1, "black", 0, 0, 0, 1, 0));
-
-        for (int i = 0; i < 4; i++)
-            cards.add(new Card(-1, "black", 0, 0, 0, 0, 1));
+        for (int i = 0; i < 4; i++) {
+            cards.add(director.constructBlackCard(1));  // Add black cards
+        }
 
         for (int i = 0; i < 4; i++) {
-            if (i == 0)
-                color = "red";
-            else if (i == 1)
-                color = "blue";
-            else if (i == 2)
-                color = "yellow";
-            else if (i == 3)
-                color = "green";
-
-            cards.add(new Card(0, color, 0, 0, 0, 0, 0));
+            cards.add(director.constructBlackCard4(1));  // Add black active 4 cards
         }
     }
 
