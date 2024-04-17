@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class Game {
 
+    ConsoleColors consoleColors= ConsoleColors.getInstance();
     private LinkedList<Card> cards;
     private ArrayList<Player> players;
     private int numplayers;
