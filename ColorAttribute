@@ -1,0 +1,12 @@
+public class ColorAttribute {
+    private final String escapeSequence;
+
+    public ColorAttribute(String escapeSequence) {
+        this.escapeSequence = escapeSequence;
+    }
+
+    public String getEscapeSequence() {
+        return escapeSequence;
+    }
+
+}
