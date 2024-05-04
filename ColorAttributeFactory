@@ -1,0 +1,8 @@
+public class ColorAttributeFactory {
+    private static final HashMap<String, ColorAttribute> colorMap = new HashMap<>();
+
+    public static ColorAttribute getColor(String escapeSequence) {
+        return colorMap.computeIfAbsent(escapeSequence, ColorAttribute::new);
+    }
+
+}
