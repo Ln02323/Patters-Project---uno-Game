@@ -1,0 +1,22 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package uno;
+/*Concrete Decorators:
+Implement concrete decorators by extending the decorator class and adding specific functionalities.
+java*/
+
+public class PlayerWithScoreDecorator extends PlayerDecorator {
+    private int score;
+
+    public PlayerWithScoreDecorator(Player decoratedPlayer, int score) {
+        super(decoratedPlayer);
+        this.score = score;
+    }
+
+    public int getScore() {
+        return score;
+    }
+}
