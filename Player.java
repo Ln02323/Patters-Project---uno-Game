@@ -7,16 +7,6 @@ import java.util.LinkedList;
  * @author sevda imany
  * @version 0.0
  */
-public class Player {
-    // a list of player cards
-    private LinkedList<Card> cards = new LinkedList<Card>();
-
-    /**
-     * get a list of player's cards
-     * @return LinkedList<Card> player's cards
-     */
-    public LinkedList<Card> getCards() {
-        return cards;
-    }
-
+public interface Player {
+    LinkedList<Card> getCards();
 }
