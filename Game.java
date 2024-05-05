@@ -57,7 +57,7 @@ public class Game {
      * @param choose 1 for playing online and 2 for playing with friends
      */
     public void game(int choose) {
-        Playground playground = new Playground();
+        PlaygroundFacade playgroundFacade = new PlaygroundFacade();
         int playerTurn = 0;
         int turn = 0;
         startGame();
@@ -72,7 +72,7 @@ public class Game {
                 cards.removeLast();
             }
         }
-        playground.printPlayground(players, cards, turn, playerTurn, choose);
+        playgroundFacade.printPlayground(players, cards, turn, playerTurn, choose);
 
         int m = 0;
 
@@ -97,7 +97,7 @@ public class Game {
                     m = 1;
 
                     clearScreen();
-                    playground.printPlayground(players, cards, turn, playerTurn, choose);
+                    playgroundFacade.printPlayground(players, cards, turn, playerTurn, choose);
                 } else if (m > 20 && m < 30) {
                     for (int i = 0; i < 2 * (m - 20); i++) {
                         players.get(playerTurn).getCards().add(cards.getLast());
@@ -105,7 +105,7 @@ public class Game {
                     }
 
                     clearScreen();
-                    playground.printPlayground(players, cards, turn, playerTurn, choose);
+                    playgroundFacade.printPlayground(players, cards, turn, playerTurn, choose);
                 } else if (m == 4) {
                     for (int i = 0; i < 4; i++) {
                         players.get(playerTurn).getCards().add(cards.getLast());
@@ -123,7 +123,7 @@ public class Game {
                     m = 1;
 
                     clearScreen();
-                    playground.printPlayground(players, cards, turn, playerTurn, choose);
+                    playgroundFacade.printPlayground(players, cards, turn, playerTurn, choose);
                 }
 
                 if (m == 5) {
@@ -133,7 +133,7 @@ public class Game {
                     }
 
                     clearScreen();
-                    playground.printPlayground(players, cards, turn, playerTurn, choose);
+                    playgroundFacade.printPlayground(players, cards, turn, playerTurn, choose);
                 }
 
                 m = choose(playerTurn, choose);
@@ -175,7 +175,7 @@ public class Game {
 
                 TimeUnit.SECONDS.sleep(4);
                 clearScreen();
-                playground.printPlayground(players, cards, turn, playerTurn, choose);
+                playgroundFacade.printPlayground(players, cards, turn, playerTurn, choose);
 
                 if (checkEndOfGame()) {
                     winner();
