@@ -1,0 +1,6 @@
+public class ColorStrategy implements PlayableStrategy{
+    @Override
+    public boolean canPlay(Card playerCard, Card topCard, CardBuilderDirector cardDirector) {
+        return cardDirector.constructCard(playerCard.getDigital(), playerCard.getColor()).getColor().equals(cardDirector.constructCard(topCard.getDigital(), topCard.getColor()).getColor());
+    }
+}

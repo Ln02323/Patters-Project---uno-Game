@@ -1,0 +1,7 @@
+public class DigitalStrategy implements PlayableStrategy{
+    @Override
+    public boolean canPlay(Card playerCard, Card topCard, CardBuilderDirector cardDirector) {
+        return cardDirector.constructCard(playerCard.getDigital(), playerCard.getColor()).getDigital() >= 0 &&
+                cardDirector.constructCard(playerCard.getDigital(), playerCard.getColor()).getDigital() == cardDirector.constructCard(topCard.getDigital(), topCard.getColor()).getDigital();
+    }
+}

@@ -482,22 +482,28 @@ public class Game {
      * @param player
      * @return {@code true} if the player has a choice to play otherwise return {@code false}
      */
-    private boolean check(int player) {
+   private boolean check(int player) {
         int n = players.get(player).getCards().size();
-        for (int i = 0; i < n; i++) {
-            if (players.get(player).getCards().get(i).getReverse() == 1 && cards.getFirst().getReverse() == 1)
-                return true;
-            else if (players.get(player).getCards().get(i).getTakeTwo() == 1 && cards.getFirst().getTakeTwo() == 1)
-                return true;
-            else if (players.get(player).getCards().get(i).getSkip() == 1 && cards.getFirst().getSkip() == 1)
-                return true;
-            else if (players.get(player).getCards().get(i).getDigital() >= 0
-                    && players.get(player).getCards().get(i).getDigital() == cards.getFirst().getDigital())
-                return true;
-            else if (players.get(player).getCards().get(i).getColor().equals(cards.getFirst().getColor()))
-                return true;
+        Card topCard = cards.getFirst();
 
+        List<PlayableStrategy> strategies = Arrays.asList(
+                new ReverseStrategy(),
+                new TakeTwoStrategy(),
+                new SkipStrategy(),
+                new DigitalStrategy(),
+                new ColorStrategy()
+        );
+
+        for (int i = 0; i < n; i++) {
+            Card playerCard = players.get(player).getCards().get(i);
+
+            for (PlayableStrategy strategy : strategies) {
+                if (strategy.canPlay(playerCard, topCard, cardDirector)) {
+                    return true;
+                }
+            }
         }
+
         return false;
     }
 

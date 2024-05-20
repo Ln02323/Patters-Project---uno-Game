@@ -1,0 +1,5 @@
+//strategy interface
+public interface PlayableStrategy {
+    boolean canPlay(Card playerCard, Card topCard, CardBuilderDirector cardDirector);
+
+}

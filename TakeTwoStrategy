@@ -1,0 +1,7 @@
+public class TakeTwoStrategy implements PlayableStrategy{
+    @Override
+    public boolean canPlay(Card playerCard, Card topCard, CardBuilderDirector cardDirector) {
+        return cardDirector.constructSpecialCard(playerCard.getDigital(), playerCard.getColor(), 0, playerCard.getTakeTwo(), 0).getTakeTwo() == 1 &&
+                cardDirector.constructSpecialCard(topCard.getDigital(), topCard.getColor(), 0, topCard.getTakeTwo(), 0).getTakeTwo() == 1;
+    }
+}

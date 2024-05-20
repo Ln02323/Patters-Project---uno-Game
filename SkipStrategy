@@ -1,0 +1,7 @@
+public class SkipStrategy implements PlayableStrategy{
+    @Override
+    public boolean canPlay(Card playerCard, Card topCard, CardBuilderDirector cardDirector) {
+        return cardDirector.constructSpecialCard(playerCard.getDigital(), playerCard.getColor(), playerCard.getSkip(), 0, 0).getSkip() == 1 &&
+                cardDirector.constructSpecialCard(topCard.getDigital(), topCard.getColor(), topCard.getSkip(), 0, 0).getSkip() == 1;
+    }
+}

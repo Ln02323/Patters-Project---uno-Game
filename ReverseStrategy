@@ -1,0 +1,8 @@
+public class ReverseStrategy implements PlayableStrategy
+{
+    @Override
+    public boolean canPlay(Card playerCard, Card topCard, CardBuilderDirector cardDirector) {
+        return cardDirector.constructSpecialCard(playerCard.getDigital(), playerCard.getColor(), 0, 0, playerCard.getReverse()).getReverse() == 1 &&
+                cardDirector.constructSpecialCard(topCard.getDigital(), topCard.getColor(), 0, 0, topCard.getReverse()).getReverse() == 1;
+    }
+}
