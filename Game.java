@@ -1,28 +1,25 @@
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Game class represet a game it holds a list of draw pile cards and a list of
  * players
- * 
+ *
  * @author sevda imany
  * @version 0.0
  */
 public class Game {
 
-    ConsoleColors consoleColors= ConsoleColors.getInstance();
     private LinkedList<Card> cards;
     private ArrayList<Player> players;
     private int numplayers;
+    private CardBuilderDirector cardDirector;
+    private ScoreCalculator scoreCalculator = ScoreCalculator.getInstance();
+    private GameContext context;
 
     /**
      * get draw pile cards
-     * 
+     *
      * @return LinkedList<Card>
      */
     public LinkedList<Card> getCards() {
@@ -31,11 +28,15 @@ public class Game {
 
     /**
      * get a list of all players
-     * 
+     *
      * @return ArrayList<Player>
      */
     public ArrayList<Player> getPlayers() {
         return players;
+    }
+
+    public CardBuilderDirector getCardDirector() {
+        return cardDirector;
     }
 
     /**
@@ -44,6 +45,9 @@ public class Game {
     public Game() {
         cards = new LinkedList<Card>();
         players = new ArrayList<Player>();
+        this.cardDirector = new CardBuilderDirector(new CardBuilder());
+        this.context = new GameContext();
+        this.context.setGame(this);
     }
 
     public static void clearScreen() {
@@ -53,20 +57,20 @@ public class Game {
 
     /**
      * this method play uno game
-     * 
+     *
      * @param choose 1 for playing online and 2 for playing with friends
      */
     public void game(int choose) {
         PlaygroundFacade playgroundFacade = new PlaygroundFacade();
         int playerTurn = 0;
         int turn = 0;
-        startGame();
-        if (cards.getFirst().getReverse() == 1)
+        context.startGame();
+        if (cardDirector.constructSpecialCard(cards.getFirst().getDigital(), cards.getFirst().getColor(), 0, 0, cards.getFirst().getReverse()).getReverse() == 1)
             turn = 1;
-        else if (cards.getFirst().getSkip() == 1)
+        else if (cardDirector.constructSpecialCard(cards.getFirst().getDigital(), cards.getFirst().getColor(), cards.getFirst().getSkip(), 0, 0).getSkip() == 1)
             playerTurn++;
 
-        else if (cards.getFirst().getTakeTwo() == 1) {
+        else if (cardDirector.constructSpecialCard(cards.getFirst().getDigital(), cards.getFirst().getColor(), 0, cards.getFirst().getTakeTwo(), 0).getTakeTwo() == 1) {
             for (int i = 0; i < 2; i++) {
                 players.get(playerTurn).getCards().add(cards.getLast());
                 cards.removeLast();
@@ -89,7 +93,7 @@ public class Game {
                         if (playerTurn == numplayers)
                             playerTurn = 0;
                     } else if (turn == 1) {
-                        
+
                         playerTurn--;
                         if (playerTurn == -1)
                             playerTurn = numplayers - 1;
@@ -177,7 +181,7 @@ public class Game {
                 clearScreen();
                 playgroundFacade.printPlayground(players, cards, turn, playerTurn, choose);
 
-                if (checkEndOfGame()) {
+                if (context.checkEndOfGame()) {
                     winner();
                     return;
                 }
@@ -189,95 +193,86 @@ public class Game {
     }
 
     /**
-     * this method is for starting a game and add players to players list it shuffle
-     * all cards and give each player 7 cards and check that the first draw pile
-     * card dont be wild!
-     */
-    private void startGame() {
-        addAllCards();
-        Collections.shuffle(cards);
-        int numPlayers = numPlayers();
-        for (int i = 0; i < numPlayers; i++) {
-            players.add(new Player());
-        }
-
-        for (int i = 0; i < numPlayers; i++) {
-            for (int j = 0; j < 7; j++) {
-                players.get(i).getCards().add(cards.getFirst());
-                cards.removeFirst();
-            }
-        }
-        while (cards.getFirst().getColor().equals("black")) {
-            cards.addLast(cards.getFirst());
-            cards.removeFirst();
-        }
-    }
-
-    /**
      * this method is for the first of a game and add 108 cards of a game to the
      * cards list
      */
-    private void addAllCards() {
-        CardBuilder cardBuilder = new CardBuilder();  // Create a CardBuilder object
-        CardBuilderDirector director = new CardBuilderDirector(cardBuilder);  // Create a CardBuilderDirector object
-
-         for (int j = 0; j < 2; j++) {
-             for (int i = 0; i < 4; i++) {
-                 String color;
-                 if (i == 0)
-                     color = "red";
-                 else if (i == 1)
-                     color = "blue";
-                 else if (i == 2)
-                     color = "yellow";
-                 else
-                     color = "green";
-
-                 if (j == 0) {
-                     cards.add(director.constructCard(0, color));  // Add zero card
-                 }
-
-                 for (int num = 1; num < 10; num++) {
-                     cards.add(director.constructCard(num, color));  // Add numbered cards
-                 }
-             }
-         }
+    public void addAllCards() {
+        for (int j = 0; j < 2; j++) {
+            for (int i = 1; i < 10; i++) {
+                cards.add(new Card(i, "red", 0, 0, 0, 0, 0));
+            }
+        }
 
         for (int j = 0; j < 2; j++) {
-            for (int i = 0; i < 4; i++) {
-                String color;
-                if (i == 0)
+            for (int i = 1; i < 10; i++) {
+                cards.add(new Card(i, "blue", 0, 0, 0, 0, 0));
+            }
+        }
+
+        for (int j = 0; j < 2; j++) {
+            for (int i = 1; i < 10; i++) {
+                cards.add(new Card(i, "yellow", 0, 0, 0, 0, 0));
+            }
+        }
+
+        for (int j = 0; j < 2; j++) {
+            for (int i = 1; i < 10; i++) {
+                cards.add(new Card(i, "green", 0, 0, 0, 0, 0));
+            }
+        }
+
+        String color = null;
+        for (int j = 0; j < 2; j++) {
+            for (int k = 0; k < 4; k++) {
+                if (k == 0)
                     color = "red";
-                else if (i == 1)
+                else if (k == 1)
                     color = "blue";
-                else if (i == 2)
+                else if (k == 2)
                     color = "yellow";
-                else
+                else if (k == 3)
                     color = "green";
-
-                cards.add(director.constructSpecialCard(0, color, 0, 0, 0));  // Add zero special card
-
-                for (int k = 0; k < 3; k++) {
-                    cards.add(director.constructSpecialCard(-1, color, k == 0 ? 1 : 0, k == 1 ? 1 : 0, k == 2 ? 1 : 0));  // Add other special cards
+                for (int i = 0; i < 3; i++) {
+                    int n = 0;
+                    int m = 0;
+                    int l = 0;
+                    if (i == 0)
+                        n = 1;
+                    else if (i == 1)
+                        m = 1;
+                    else if (i == 2)
+                        l = 1;
+                    cards.add(new Card(-1, color, n, m, l, 0, 0));
                 }
             }
         }
 
-        for (int i = 0; i < 4; i++) {
-            cards.add(director.constructBlackCard(1));  // Add black cards
-        }
+        for (int i = 0; i < 4; i++)
+            cards.add(new Card(-1, "black", 0, 0, 0, 1, 0));
+
+        for (int i = 0; i < 4; i++)
+            cards.add(new Card(-1, "black", 0, 0, 0, 0, 1));
 
         for (int i = 0; i < 4; i++) {
-            cards.add(director.constructBlackCard4(1));  // Add black active 4 cards
+            if (i == 0)
+                color = "red";
+            else if (i == 1)
+                color = "blue";
+            else if (i == 2)
+                color = "yellow";
+            else if (i == 3)
+                color = "green";
+
+            cards.add(new Card(0, color, 0, 0, 0, 0, 0));
         }
     }
 
     /**
      * this method ask user that wants to play with how many player
-     * 
+     *
      * @return number of players
      */
-    private int numPlayers() {
+    public int numPlayers() {
         Scanner sc = new Scanner(System.in);
         clearScreen();
         System.out.println("\n\n\t\t\t\t\t\t\t\t\t\t   " + ConsoleColors.YELLOW_BOLD_BRIGHT
@@ -289,7 +284,7 @@ public class Game {
 
     /**
      * this method choose a card for each player
-     * 
+     *
      * @param player
      * @param chooseMenu if 1 play online and if 2 play with friends and ask each
      *                   player which card wants to choose
@@ -303,110 +298,95 @@ public class Game {
      *         return 1
      */
     private int choose(int player, int chooseMenu) {
-
         if (chooseMenu == 1) {
             if (player == 0) {
                 int n = playYourTurn(0);
                 return n;
-
             } else {
                 Iterator<Card> it = players.get(player).getCards().iterator();
                 Random random = new Random();
-                int rand = random.nextInt(4);
-                String color = "red";
-                if (rand == 0)
-                    color = "red";
-                else if (rand == 1)
-                    color = "blue";
-                else if (rand == 2)
-                    color = "green";
-                else if (rand == 3)
-                    color = "yellow";
+                String[] colors = {"red", "blue", "green", "yellow"};
+                String color = colors[random.nextInt(4)];
 
-                if (cards.getFirst().getBlackActive4() == 1) {
+                if (cardDirector.constructBlackCard4(cards.getFirst().getBlackActive4()).getBlackActive4() == 1) {
                     while (it.hasNext()) {
                         Card card = it.next();
-                        if (card.getBlackActive4() == 1) {
+                        if (cardDirector.constructBlackCard4(card.getBlackActive4()).getBlackActive4() == 1) {
                             int n = 10;
                             cards.addFirst(card);
                             players.get(player).getCards().remove(card);
                             cards.getFirst().setColor(color);
                             Iterator<Card> it5 = cards.iterator();
                             while (it5.hasNext()) {
-                                if (it5.next().getBlackActive4() == 1) {
+                                if (cardDirector.constructBlackCard4(it5.next().getBlackActive4()).getBlackActive4() == 1) {
                                     n++;
-                                } else
+                                } else {
                                     break;
+                                }
                             }
                             return n;
                         }
-
                     }
-                } else if (cards.getFirst().getTakeTwo() == 1) {
+                } else if (cardDirector.constructSpecialCard(cards.getFirst().getDigital(), cards.getFirst().getColor(), 0, cards.getFirst().getTakeTwo(), 0).getTakeTwo() == 1) {
                     it = players.get(player).getCards().iterator();
                     while (it.hasNext()) {
                         Card card = it.next();
-                        if (card.getTakeTwo() == 1) {
+                        if (cardDirector.constructSpecialCard(card.getDigital(), card.getColor(), 0, card.getTakeTwo(), 0).getTakeTwo() == 1) {
                             int n = 20;
                             cards.addFirst(card);
                             players.get(player).getCards().remove(card);
                             Iterator<Card> it6 = cards.iterator();
                             while (it6.hasNext()) {
-                                if (it6.next().getTakeTwo() == 1) {
+                                if (cardDirector.constructSpecialCard(it6.next().getDigital(), it6.next().getColor(), 0, it6.next().getTakeTwo(), 0).getTakeTwo() == 1) {
                                     n++;
-                                } else
+                                } else {
                                     break;
+                                }
                             }
                             return n;
                         }
-
                     }
-                }
-
-                else if (cards.getFirst().getSkip() == 1) {
+                } else if (cardDirector.constructSpecialCard(cards.getFirst().getDigital(), cards.getFirst().getColor(), cards.getFirst().getSkip(), 0, 0).getSkip() == 1) {
                     it = players.get(player).getCards().iterator();
                     while (it.hasNext()) {
                         Card card = it.next();
-                        if (card.getSkip() == 1) {
+                        if (cardDirector.constructSpecialCard(card.getDigital(), card.getColor(), card.getSkip(), 0, 0).getSkip() == 1) {
                             cards.addFirst(card);
                             players.get(player).getCards().remove(card);
                             return 3;
                         }
-
                     }
-                }
-
-                else if (cards.getFirst().getReverse() == 1) {
+                } else if (cardDirector.constructSpecialCard(cards.getFirst().getDigital(), cards.getFirst().getColor(), 0, 0, cards.getFirst().getReverse()).getReverse() == 1) {
                     it = players.get(player).getCards().iterator();
                     while (it.hasNext()) {
                         Card card = it.next();
-                        if (card.getReverse() == 1) {
+                        if (cardDirector.constructSpecialCard(card.getDigital(), card.getColor(), 0, 0, card.getReverse()).getReverse() == 1) {
                             cards.addFirst(card);
                             players.get(player).getCards().remove(card);
                             return 0;
                         }
-
                     }
                 } else {
                     it = players.get(player).getCards().iterator();
                     while (it.hasNext()) {
                         Card card = it.next();
-                        if (card.getDigital() >= 0 && card.getDigital() == cards.getFirst().getDigital()) {
+                        if (cardDirector.constructCard(card.getDigital(), card.getColor()).getDigital() >= 0 &&
+                                cardDirector.constructCard(card.getDigital(), card.getColor()).getDigital() ==
+                                        cardDirector.constructCard(cards.getFirst().getDigital(), cards.getFirst().getColor()).getDigital()) {
                             cards.addFirst(card);
                             players.get(player).getCards().remove(card);
                             return 1;
                         }
 
-                        if (card.getColor().equals(cards.getFirst().getColor())) {
+                        if (cardDirector.constructCard(card.getDigital(), card.getColor()).getColor().equals(
+                                cardDirector.constructCard(cards.getFirst().getDigital(), cards.getFirst().getColor()).getColor())) {
                             cards.addFirst(card);
                             players.get(player).getCards().remove(card);
-                            if (cards.getFirst().getReverse() == 1)
+                            if (cardDirector.constructSpecialCard(cards.getFirst().getDigital(), cards.getFirst().getColor(), 0, 0, cards.getFirst().getReverse()).getReverse() == 1)
                                 return 0;
-
-                            else if (cards.getFirst().getSkip() == 1)
+                            else if (cardDirector.constructSpecialCard(cards.getFirst().getDigital(), cards.getFirst().getColor(), cards.getFirst().getSkip(), 0, 0).getSkip() == 1)
                                 return 3;
-
-                            else if (cards.getFirst().getTakeTwo() == 1)
+                            else if (cardDirector.constructSpecialCard(cards.getFirst().getDigital(), cards.getFirst().getColor(), 0, cards.getFirst().getTakeTwo(), 0).getTakeTwo() == 1)
                                 return 5;
                             else
                                 return 1;
@@ -416,25 +396,23 @@ public class Game {
                 it = players.get(player).getCards().iterator();
                 while (it.hasNext()) {
                     Card card = it.next();
-                    if (card.getBlackActive() == 1) {
+                    if (cardDirector.constructBlackCard(card.getBlackActive()).getBlackActive() == 1) {
                         cards.addFirst(card);
                         players.get(player).getCards().remove(card);
                         cards.getFirst().setColor(color);
                         return 1;
                     }
                 }
-
                 it = players.get(player).getCards().iterator();
                 while (it.hasNext()) {
                     Card card = it.next();
-                    if (card.getBlackActive4() == 1) {
+                    if (cardDirector.constructBlackCard4(card.getBlackActive4()).getBlackActive4() == 1) {
                         cards.addFirst(card);
                         players.get(player).getCards().remove(card);
                         cards.getFirst().setColor(color);
                         return 4;
                     }
                 }
-
                 return -1;
             }
         } else {
@@ -443,38 +421,42 @@ public class Game {
         }
     }
 
-  
     /**
      * this method check if the chosen card is acceptable or not
      * @param numCard
      * @param player
-     * @return {@code true} if the chosen card is acceptable otherwise return {@code false} 
+     * @return {@code true} if the chosen card is acceptable otherwise return {@code false}
      */
     private boolean check(int numCard, int player) {
-        if (players.get(player).getCards().get(numCard).getBlackActive4() == 1
-                && cards.getFirst().getBlackActive4() == 1)
-            return true;
+        Card currentPlayerCard = players.get(player).getCards().get(numCard);
+        Card topCard = cards.getFirst();
 
-        else if (players.get(player).getCards().get(numCard).getBlackActive4() == 1
-                || players.get(player).getCards().get(numCard).getBlackActive() == 1) {
+        if (cardDirector.constructBlackCard4(currentPlayerCard.getBlackActive4()).getBlackActive4() == 1 &&
+                cardDirector.constructBlackCard4(topCard.getBlackActive4()).getBlackActive4() == 1)
+            return true;
+        else if (cardDirector.constructBlackCard4(currentPlayerCard.getBlackActive4()).getBlackActive4() == 1 ||
+                cardDirector.constructBlackCard(currentPlayerCard.getBlackActive()).getBlackActive() == 1) {
             if (!check(player))
                 return true;
-
         }
-        if (players.get(player).getCards().get(numCard).getReverse() == 1 && cards.getFirst().getReverse() == 1)
+        if (cardDirector.constructSpecialCard(currentPlayerCard.getDigital(), currentPlayerCard.getColor(), 0, 0, currentPlayerCard.getReverse()).getReverse() == 1 &&
+                cardDirector.constructSpecialCard(topCard.getDigital(), topCard.getColor(), 0, 0, topCard.getReverse()).getReverse() == 1)
             return true;
-        else if (players.get(player).getCards().get(numCard).getTakeTwo() == 1 && cards.getFirst().getTakeTwo() == 1)
+        else if (cardDirector.constructSpecialCard(currentPlayerCard.getDigital(), currentPlayerCard.getColor(), 0, currentPlayerCard.getTakeTwo(), 0).getTakeTwo() == 1 &&
+                cardDirector.constructSpecialCard(topCard.getDigital(), topCard.getColor(), 0, topCard.getTakeTwo(), 0).getTakeTwo() == 1)
             return true;
-        else if (players.get(player).getCards().get(numCard).getSkip() == 1 && cards.getFirst().getSkip() == 1)
+        else if (cardDirector.constructSpecialCard(currentPlayerCard.getDigital(), currentPlayerCard.getColor(), currentPlayerCard.getSkip(), 0, 0).getSkip() == 1 &&
+                cardDirector.constructSpecialCard(topCard.getDigital(), topCard.getColor(), topCard.getSkip(), 0, 0).getSkip() == 1)
             return true;
-        else if (players.get(player).getCards().get(numCard).getDigital() >= 0
-                && players.get(player).getCards().get(numCard).getDigital() == cards.getFirst().getDigital())
+        else if (cardDirector.constructCard(currentPlayerCard.getDigital(), currentPlayerCard.getColor()).getDigital() >= 0 &&
+                cardDirector.constructCard(currentPlayerCard.getDigital(), currentPlayerCard.getColor()).getDigital() ==
+                        cardDirector.constructCard(topCard.getDigital(), topCard.getColor()).getDigital())
             return true;
-        else if (players.get(player).getCards().get(numCard).getColor().equals(cards.getFirst().getColor()))
+        else if (cardDirector.constructCard(currentPlayerCard.getDigital(), currentPlayerCard.getColor()).getColor().equals(
+                cardDirector.constructCard(topCard.getDigital(), topCard.getColor()).getColor()))
             return true;
 
         return false;
-
     }
 
     /**
@@ -482,7 +464,8 @@ public class Game {
      * @param player
      * @return {@code true} if the player has a choice to play otherwise return {@code false}
      */
-   private boolean check(int player) {
+    // Method to check if the player can play with his cards or not
+    private boolean check(int player) {
         int n = players.get(player).getCards().size();
         Card topCard = cards.getFirst();
 
@@ -507,7 +490,8 @@ public class Game {
         return false;
     }
 
-   /**
+
+    /**
      * this method check if the player can play with his cards or not
      * @param player
      * @return {@code true} if the player has a choice to play otherwise return {@code false}
@@ -515,27 +499,16 @@ public class Game {
     private boolean checkPlay(int player) {
         int n = players.get(player).getCards().size();
         for (int i = 0; i < n; i++) {
-            if (players.get(player).getCards().get(i).getBlackActive4() == 1
-                    || players.get(player).getCards().get(i).getBlackActive() == 1)
+            Card card = players.get(player).getCards().get(i);
+            if (cardDirector.constructBlackCard(card.getBlackActive()).getBlackActive() == 1 ||
+                    cardDirector.constructBlackCard4(card.getBlackActive4()).getBlackActive4() == 1) {
                 return true;
+            }
         }
 
         if (check(player))
             return true;
 
-        return false;
-    }
-
-    /**
-     * this method check if the game ends or nor
-     * @return {@code true} if the game ends otherwise {@code false}
-     */
-    private boolean checkEndOfGame() {
-        int numPlayer = players.size();
-        for (int i = 0; i < numPlayer; i++) {
-            if (players.get(i).getCards().size() == 0)
-                return true;
-        }
         return false;
     }
 
@@ -549,11 +522,11 @@ public class Game {
             int numPlayerCards = players.get(i).getCards().size();
             int sum = 0;
             for (int j = 0; j < numPlayerCards; j++) {
-                sum += scores(players.get(i).getCards().get(j));
+                sum += scoreCalculator.calculateScore(players.get(i).getCards().get(j));
             }
             scores.add(sum);
         }
-        printScores(scores);
+        scoreCalculator.printScores(players, scores);
         ArrayList<Integer> numwinners = new ArrayList<Integer>();
         int min = Collections.min(scores);
         for (int i = 0; i < numPlayers; i++) {
@@ -573,31 +546,9 @@ public class Game {
     /**
      * this method give each card a score
      * @param card
-     * @return score of given card 
+     * @return score of given card
      */
-    private int scores(Card card) {
-        int score = 0;
-        if (card.getDigital() >= 0)
-            score = card.getDigital();
-        else if (card.getBlackActive() == 1 || card.getBlackActive4() == 1)
-            score = 50;
-        else
-            score = 20;
 
-        return score;
-    }
-
-    /**
-     * this method print score of all players at the end of the game
-     * @param scores
-     */
-    private void printScores(ArrayList<Integer> scores) {
-        clearScreen();
-        for (int i = 0; i < players.size(); i++) {
-            System.out.println("\n\n\t\t\t\t\t\t\t\t\t\t   " + ConsoleColors.CYAN_BOLD_BRIGHT + "Player" + (i + 1)
-                    + " scores: " + scores.get(i) + ConsoleColors.RESET);
-        }
-    }
 
     /**
      * this method ask player to choose a card to play and check that the card be acceptable
